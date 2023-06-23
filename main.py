@@ -1,96 +1,87 @@
-estudantes = []
-professores = []
-disciplinas = []
-turmas = []
-matriculas = []
+import json
 
 
-def apresentar_menu_principal():
-    print('\n###############')
-    print("\nMenu Principal:")
-    print('\n###############\n')
-    print("1. Gerenciar estudantes")
-    print("2. Gerenciar professores")
-    print("3. Gerenciar disciplinas")
-    print("4. Gerenciar turmas")
-    print("5. Gerenciar matrículas")
-    print("6. Sair")
+def salvar_dados_arquivo(dados, tipo_dado):
+    with open(f"{tipo_dado.lower()}.json", "w") as arquivo:
+        json.dump(dados, arquivo)
 
 
-def apresentar_menu_operacoes(tipo_dado):
-    print('\n#################################')
-    print("\nMenu de Operações para {}:".format(tipo_dado))
-    print('\n#################################\n')
-    print("1. Incluir")
-    print("2. Listar")
-    print("3. Editar")
-    print("4. Excluir")
-    print("5. Voltar ao menu principal")
+def recuperar_dados_arquivo(tipo_dado):
+    try:
+        with open(f"{tipo_dado.lower()}.json", "r") as arquivo:
+            return json.load(arquivo)
+    except FileNotFoundError:
+        return []
 
 
 def incluir_dado(dados, tipo_dado, campos):
+    while True:
+        codigo = int(input(f"Digite o código do {tipo_dado}: "))
+        if verificar_codigo_existente(dados, codigo):
+            print(f"O código {codigo} já está em uso. Por favor, escolha outro código.")
+        else:
+            break
+
     novo_dado = {}
     for campo, tipo in campos.items():
-        valor = input("Digite {}: ".format(campo))
-        if tipo == int:
-            valor = int(valor)
-        novo_dado[campo] = valor
-
-    if tipo_dado == "Turmas" and verificar_codigo_existente(turmas, novo_dado["Código da turma"]):
-        print("Já existe uma turma com esse código. Inclusão cancelada.")
-        return
-
-    if tipo_dado == "Matrículas" and verificar_codigo_existente(matriculas, novo_dado["Código da turma"]):
-        print("Já existe uma matrícula com esse código. Inclusão cancelada.")
-        return
+        if campo == "Codigo":
+            novo_dado[campo] = codigo
+        else:
+            valor = input(f"Digite {campo}: ")
+            if tipo == int:
+                valor = int(valor)
+            novo_dado[campo] = valor
 
     dados.append(novo_dado)
-    print("\n{} adicionado com sucesso!".format(tipo_dado))
+    salvar_dados_arquivo(dados, tipo_dado)
+    print(f"\n{tipo_dado} adicionado com sucesso!")
 
 
 def listar_dados(dados, tipo_dado):
     if len(dados) == 0:
-        print("Não há {} cadastrados.".format(tipo_dado))
+        print(f"Não há {tipo_dado} cadastrados.")
     else:
-        print("\n{} cadastrados:".format(tipo_dado))
+        print(f"\n{tipo_dado} cadastrados:")
         for dado in dados:
-            print("- Código: {}".format(dado["Código"]))
+            print("- Código:", dado["Codigo"])
             for campo, valor in dado.items():
-                if campo != "Código":
-                    print("  {}: {}".format(campo.capitalize(), valor))
+                if campo != "Codigo":
+                    print(f"  {campo.capitalize()}: {valor}")
             print("")
-        input("Aperte Enter para voltar")
+        input("Pressione Enter para voltar")
 
 
 def excluir_dado(dados, tipo_dado):
-    codigo = int(input("Digite o código do {} a ser excluído: ".format(tipo_dado)))
+    codigo = int(input(f"Digite o código do {tipo_dado} a ser excluído: "))
     for dado in dados:
-        if dado["Código"] == codigo:
+        if dado["Codigo"] == codigo:
             dados.remove(dado)
-            print("{} excluído com sucesso!".format(tipo_dado))
+            salvar_dados_arquivo(dados, tipo_dado)
+            print(f"{tipo_dado} excluído com sucesso!")
             break
     else:
-        print("{} não encontrado.".format(tipo_dado))
+        print(f"{tipo_dado} não encontrado.")
 
 
 def editar_dado(dados, tipo_dado, campos):
-    codigo = int(input("Digite o código do {} a ser editado: ".format(tipo_dado)))
+    codigo = int(input(f"Digite o código do {tipo_dado} a ser editado: "))
     for dado in dados:
-        if dado["Código"] == codigo:
+        if dado["Codigo"] == codigo:
             for campo, tipo in campos.items():
-                novo_valor = input("Digite novo valor para {}: ".format(campo))
+                novo_valor = input(f"Digite novo valor para {campo}: ")
                 if tipo == int:
                     novo_valor = int(novo_valor)
                 dado[campo] = novo_valor
-            print("{} editado com sucesso!".format(tipo_dado))
+            salvar_dados_arquivo(dados, tipo_dado)
+            print(f"{tipo_dado} editado com sucesso!")
             break
     else:
-        print("{} não encontrado.".format(tipo_dado))
+        print(f"{tipo_dado} não encontrado.")
 
 
 def verificar_codigo_existente(dados, codigo):
     for dado in dados:
-        if dado["Código"] == codigo:
+        if dado["Codigo"] == codigo:
             return True
     return False
 
@@ -111,49 +102,49 @@ def gerenciar_dados(dados, tipo_dado, campos):
         elif opcao == "5":
             break
         else:
-            print("Opção inválida. Por favor, selecione uma opção válida.")
+            print("Opção inválida! Tente novamente.")
 
-
-def gerenciar_estudantes():
-    gerenciar_dados(estudantes, "Estudantes", {"Código": int, "Nome": str, "CPF": str})
-
-
-def gerenciar_professores():
-    gerenciar_dados(professores, "Professores", {"Código": int, "Nome": str, "CPF": str})
-
-
-def gerenciar_disciplinas():
-    gerenciar_dados(disciplinas, "Disciplinas", {"Código": int, "Nome": str})
-
-
-def gerenciar_turmas():
-    gerenciar_dados(turmas, "Turmas", {"Código": int, "Código do professor": int, "Código da disciplina": int})
-
-
-def gerenciar_matriculas():
-    gerenciar_dados(matriculas, "Matrículas", {"Código da turma": int, "Código do estudante": int})
+def apresentar_menu_operacoes(tipo_dado):
+    print(f"\n-- Gerenciar {tipo_dado} --")
+    print("1. Incluir")
+    print("2. Listar")
+    print("3. Editar")
+    print("4. Excluir")
+    print("5. Voltar")
 
 
 def menu_principal():
+    estudantes = recuperar_dados_arquivo("estudantes")
+    professores = recuperar_dados_arquivo("professores")
+    disciplinas = recuperar_dados_arquivo("disciplinas")
+    turmas = recuperar_dados_arquivo("turmas")
+    matriculas = recuperar_dados_arquivo("matriculas")
+
     while True:
-        apresentar_menu_principal()
+        print("\n--- Sistema de Gerenciamento Escolar ---")
+        print("1. Gerenciar Estudantes")
+        print("2. Gerenciar Professores")
+        print("3. Gerenciar Disciplinas")
+        print("4. Gerenciar Turmas")
+        print("5. Gerenciar Matrículas")
+        print("6. Sair")
+
         opcao = input("Selecione uma opção: ")
 
         if opcao == "1":
-            gerenciar_estudantes()
+            gerenciar_dados(estudantes, "Estudantes", {"Codigo": int, "Nome": str, "CPF": str})
         elif opcao == "2":
-            gerenciar_professores()
+            gerenciar_dados(professores, "Professores", {"Codigo": int, "Nome": str, "CPF": str})
         elif opcao == "3":
-            gerenciar_disciplinas()
+            gerenciar_dados(disciplinas, "Disciplinas", {"Codigo": int, "Nome": str})
         elif opcao == "4":
-            gerenciar_turmas()
+            gerenciar_dados(turmas, "Turmas", {"Codigo": int, "Disciplina": str, "Professor": str})
         elif opcao == "5":
-            gerenciar_matriculas()
+            gerenciar_dados(matriculas, "Matrículas", {"Codigo": int, "Estudante": str, "Turma": str})
         elif opcao == "6":
-            print("Encerrando aplicação")
             break
         else:
-            print("Opção inválida. Por favor, selecione uma opção válida.")
+            print("Opção inválida! Tente novamente.")
 
 
 menu_principal()
